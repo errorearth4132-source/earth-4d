@@ -3,38 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Slime Adventure</title>
+<title>Slime Adventure - Fullscreen</title>
 <style>
 * {
   box-sizing: border-box;
 }
-body {
+html, body {
   margin: 0;
+  padding: 0;
+  width: 100vw;
+  height: 100vh;
   background: #181818;
   color: white;
   font-family: Arial, sans-serif;
+  overflow: hidden;
 }
 .game-window {
-  width: 100%;
-  max-width: 650px;
-  min-height: 650px;
-  margin: 20px auto;
+  width: 100vw;
+  height: 100vh;
+  max-width: none;
+  min-height: 100vh;
+  margin: 0;
   background: #101010;
-  border: 2px solid #004080;
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 0 25px rgba(0,100,255,0.25);
+  border: none;
+  border-radius: 0;
+  padding: 24px;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 .page {
   display: none;
+  flex: 1;
 }
 .page.active {
-  display: block;
+  display: flex;
+  flex-direction: column;
 }
 
 .title {
   text-align: center;
-  font-size: 32px;
+  font-size: 36px;
   font-weight: bold;
   background: linear-gradient(
     to right,
@@ -43,12 +53,12 @@ body {
   );
   -webkit-background-clip: text;
   color: transparent;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 .subtitle {
   text-align: center;
   color: #999;
-  margin-bottom: 25px;
+  margin-bottom: 20px;
 }
 button {
   background: #222;
@@ -79,8 +89,9 @@ button.action-locked:disabled {
 }
 
 .menu-button {
-  width: 80%;
-  margin: 8px auto;
+  width: 100%;
+  max-width: 450px;
+  margin: 10px auto;
   display: block;
 }
 .attack-button {
@@ -99,25 +110,27 @@ button.action-locked:disabled {
   background: #181818;
   border: 2px solid #003d70;
   border-radius: 14px;
-  padding: 15px;
-  margin: 12px 0;
+  padding: 20px;
+  margin: 12px auto;
+  width: 100%;
+  max-width: 700px;
 }
 .battle-buttons {
   display: flex;
-  gap: 10px;
+  gap: 12px;
   flex-wrap: wrap;
   justify-content: center;
-  margin-top: 15px;
+  margin-top: 12px;
 }
 .battle-buttons button {
-  min-width: 135px;
+  min-width: 150px;
 }
+
 .item-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 10px;
 }
-
 .item-card {
   background: #202020;
   border: 1px solid #444;
@@ -139,7 +152,9 @@ button.action-locked:disabled {
   min-height: 40px;
 }
 .log {
-  min-height: 90px;
+  min-height: 100px;
+  max-height: 150px;
+  overflow-y: auto;
   background: #111;
   border: 1px solid #333;
   border-radius: 10px;
@@ -181,13 +196,14 @@ button.action-locked:disabled {
 
 .battle-scene {
   position: relative;
-  height: 350px;
-  margin: 12px 0;
+  width: 100%;
+  max-width: 750px;
+  height: 380px;
+  margin: 12px auto;
   border: 2px solid #003d70;
   border-radius: 16px;
   overflow: hidden;
-  background:
-  radial-gradient(
+  background: radial-gradient(
     circle at 50% 20%,
     #18314a,
     #0b1118 70%
@@ -195,14 +211,14 @@ button.action-locked:disabled {
 }
 .battle-hud {
   position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 7px;
+  left: 10px;
+  right: 10px;
+  top: 8px;
   z-index: 50;
   background: rgba(8,12,18,.95);
   border: 1px solid #31516d;
   border-radius: 10px;
-  padding: 7px;
+  padding: 8px;
 }
 .hud-title {
   text-align: center;
@@ -214,13 +230,13 @@ button.action-locked:disabled {
 .hud-columns {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 7px;
+  gap: 8px;
 }
 .hud-player,
 .hud-enemy {
   background: #151a20;
   border-radius: 7px;
-  padding: 5px;
+  padding: 6px;
 }
 .hud-player {
   border-left: 3px solid #4f8cff;
@@ -231,7 +247,7 @@ button.action-locked:disabled {
 
 .hud-name {
   font-weight: bold;
-  font-size: 11px;
+  font-size: 12px;
   margin-bottom: 2px;
 }
 .hud-hp-text {
@@ -249,8 +265,7 @@ button.action-locked:disabled {
   right: 0;
   bottom: 0;
   height: 55px;
-  background:
-  linear-gradient(
+  background: linear-gradient(
     to top,
     #102b18,
     #102018
@@ -265,10 +280,10 @@ button.action-locked:disabled {
   z-index: 10;
 }
 .player-character {
-  left: 13%;
+  left: 15%;
 }
 .slime-character {
-  right: 13%;
+  right: 15%;
 }
 .character-hp {
   position: absolute;
@@ -371,7 +386,7 @@ button.action-locked:disabled {
 .battle-notification {
   position: absolute;
   left: 50%;
-  top: 185px;
+  top: 195px;
   transform: translateX(-50%);
   z-index: 100;
   min-width: 150px;
@@ -473,6 +488,7 @@ button.action-locked:disabled {
   color: #ffd700;
   font-weight: bold;
 }
+
 #item-reward-overlay {
   position: fixed;
   inset: 0;
@@ -587,6 +603,10 @@ button.action-locked:disabled {
   grid-template-columns: repeat(3,1fr);
   gap: 8px;
   margin: 16px 0 12px;
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
 }
 .equipment-tab {
   min-height: 48px;
@@ -604,18 +624,23 @@ button.action-locked:disabled {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: 10px 0;
+  margin: 10px auto;
   padding: 10px 12px;
   background: #151a20;
   border: 1px solid #31516d;
   border-radius: 12px;
+  max-width: 700px;
+  width: 100%;
 }
 .inventory-panel-title small { color: #888; font-size: 11px; }
 
 .inventory-grid {
   display: grid;
-  grid-template-columns: repeat(2,minmax(0,1fr));
-  gap: 10px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  max-width: 700px;
+  margin: 0 auto;
+  width: 100%;
 }
 .inventory-card {
   min-height: 160px;
@@ -636,8 +661,8 @@ button.action-locked:disabled {
 .inventory-card.active-inventory { border-top: 3px solid #55ccff; }
 .inventory-card.unique-inventory { border-top: 3px solid #b56cff; }
 .inventory-icon {
-  width: 64px;
-  height: 64px;
+  width: 56px;
+  height: 56px;
   margin: 0 auto 8px;
   display: flex;
   align-items: center;
@@ -645,11 +670,11 @@ button.action-locked:disabled {
   background: #0d1218;
   border: 1px solid #405364;
   border-radius: 16px;
-  font-size: 35px;
+  font-size: 30px;
 }
-.inventory-name { font-weight: bold; font-size: 15px; line-height: 1.3; }
-.inventory-owned { margin-top: 5px; color: #55ccff; font-size: 12px; }
-.inventory-equipped { margin-top: 3px; color: #ffd35a; font-size: 12px; font-weight: bold; }
+.inventory-name { font-weight: bold; font-size: 14px; line-height: 1.3; }
+.inventory-owned { margin-top: 4px; color: #55ccff; font-size: 11px; }
+.inventory-equipped { margin-top: 2px; color: #ffd35a; font-size: 11px; font-weight: bold; }
 .inventory-empty {
   grid-column: 1 / -1;
   padding: 28px 15px;
@@ -700,16 +725,16 @@ button.action-locked:disabled {
 }
 .quantity-actions button { min-height: 44px; }
 
-@media(max-width:600px) {
+@media(max-width:768px) {
   .inventory-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
   .equipment-tabs { position: sticky; top: 0; z-index: 20; background: #101010; padding: 7px 0; }
   .equipment-tab { font-size: 11px; }
-  .game-window { margin: 5px; width: calc(100% - 10px); padding: 12px; }
+  .game-window { padding: 12px; }
   .item-grid { grid-template-columns: 1fr; }
   .battle-buttons button { width: 100%; }
   .battle-scene { height: 350px; }
-  .player-character { left: 4%; }
-  .slime-character { right: 4%; }
+  .player-character { left: 5%; }
+  .slime-character { right: 5%; }
   .hud-stat { font-size: 9px; }
   .battle-notification { font-size: 23px; }
 }
@@ -717,20 +742,20 @@ button.action-locked:disabled {
 </head>
 <body>
 <div class="game-window">
-  <div id="page-main" class="page active">
+  <div id="page-main" class="page active" style="justify-content: center; align-items: center; text-align: center;">
     <div class="title">⚔️ SLIME ADVENTURE</div>
     <div class="subtitle">เกมต่อสู้กับสไลม์</div>
-    <div class="box">
+    <div class="box" style="max-width: 400px;">
       <button class="menu-button" onclick="showPage('page-enemy')">🎮 เข้าเกม</button>
       <button class="menu-button" onclick="showEquipment()">🎒 อุปกรณ์</button>
       <button class="menu-button" onclick="exitGame()">🚪 ออก</button>
     </div>
   </div>
 
-  <div id="page-enemy" class="page">
+  <div id="page-enemy" class="page" style="align-items: center; justify-content: center;">
     <div class="title">⚔️ เลือกศัตรู</div>
     <div class="status">อุปกรณ์ที่ใส่อยู่: <b id="equipment-total">0</b> / 16</div>
-    <div class="box">
+    <div class="box" style="max-width: 500px;">
       <button class="menu-button" onclick="startGame(1)">🟢 ต่อสู้กับสไลม์ Lv.1</button>
       <button id="lv5-button" class="menu-button" onclick="startGame(5)">🟡 ต่อสู้กับสไลม์ Lv.5</button>
       <div id="lv5-status" class="status"></div>
@@ -739,7 +764,7 @@ button.action-locked:disabled {
       <button id="lv20-button" class="menu-button" onclick="startGame(20)">🟣 ต่อสู้กับสไลม์ Lv.20</button>
       <div id="lv20-status" class="status"></div>
     </div>
-    <button onclick="showPage('page-main')">↩️ กลับ</button>
+    <button class="menu-button" style="max-width: 200px;" onclick="showPage('page-main')">↩️ กลับ</button>
   </div>
 
   <div id="page-battle" class="page">
@@ -790,7 +815,7 @@ button.action-locked:disabled {
       <div id="battle-notification" class="battle-notification"></div>
     </div>
     
-    <div class="box">
+    <div class="box" style="margin-top: 5px; margin-bottom: 5px;">
       <div class="battle-buttons">
         <button id="attack-button" class="attack-button" onclick="playerAttack()">⚔️ โจมตี</button>
         <button id="heal-button" class="heal-button" onclick="playerHeal()">💚 ฟื้นฟู</button>
@@ -810,10 +835,12 @@ button.action-locked:disabled {
         <button id="attack-orb-button" onclick="useAttackOrb()">🔮 ลูกแก้วพลังโจมตี (0) • 0 DMG</button>
       </div>
     </div>
-    <div class="box">
+    <div class="box" style="margin-top: 5px; margin-bottom: 5px; padding: 10px;">
       <div id="battle-log" class="log">เริ่มการต่อสู้</div>
     </div>
-    <button onclick="leaveBattle()">↩️ ออกจากการต่อสู้</button>
+    <div style="text-align: center; margin-bottom: 10px;">
+      <button class="menu-button" style="max-width: 250px; display: inline-block;" onclick="leaveBattle()">↩️ ออกจากการต่อสู้</button>
+    </div>
   </div>
 
   <div id="page-equipment" class="page">
@@ -834,13 +861,14 @@ button.action-locked:disabled {
       <small>กดไอเทมเพื่อจัดการจำนวน</small>
     </div>
     <div id="equipment-list" class="inventory-grid"></div>
-    <br>
-    <button onclick="showPage('page-main')">↩️ กลับ</button>
+    <div style="text-align: center; margin: 20px 0;">
+      <button class="menu-button" style="max-width: 200px; display: inline-block;" onclick="showPage('page-main')">↩️ กลับ</button>
+    </div>
   </div>
 
-  <div id="page-exit" class="page">
+  <div id="page-exit" class="page" style="align-items: center; justify-content: center; text-align: center;">
     <div class="title">🚪 ออกจากเกม</div>
-    <div class="box" style="text-align:center">เกมถูกปิดแล้ว</div>
+    <div class="box" style="max-width: 350px;">เกมถูกปิดแล้ว</div>
   </div>
 </div>
 
@@ -1305,7 +1333,10 @@ function updateBattleUI() {
 
 function log(text) {
   const element = document.getElementById("battle-log");
-  if (element) element.innerHTML = text;
+  if (element) {
+    element.innerHTML = text;
+    element.scrollTop = element.scrollHeight;
+  }
 }
 
 function playerAttack() {
@@ -1849,7 +1880,6 @@ function removeAllEquipmentFromModal() {
 
 function addEquipment(item, silent = false) {
   const type = itemType[item];
-  // แก้บั๊กตรงนี้: ตรวจสอบไม่ให้จำนวนที่ใส่ เกินจำนวนที่มีใน inventory
   if (equipped[item] >= inventory[item]) {
     if (!silent) {
       showGameMessage("ไอเทมไม่เพียงพอ", "คุณมี " + item + " ไม่พอให้สวมใส่เพิ่ม", "🎒");
