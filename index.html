@@ -1,0 +1,1965 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slime Adventure</title>
+<style>
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #181818;
+  color: white;
+  font-family: Arial, sans-serif;
+}
+.game-window {
+  width: 100%;
+  max-width: 650px;
+  min-height: 650px;
+  margin: 20px auto;
+  background: #101010;
+  border: 2px solid #004080;
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 0 25px rgba(0,100,255,0.25);
+}
+.page {
+  display: none;
+}
+.page.active {
+  display: block;
+}
+
+.title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  background: linear-gradient(
+    to right,
+    #00a6a6,
+    #80d4ff
+  );
+  -webkit-background-clip: text;
+  color: transparent;
+  margin-bottom: 10px;
+}
+.subtitle {
+  text-align: center;
+  color: #999;
+  margin-bottom: 25px;
+}
+button {
+  background: #222;
+  color: white;
+  border: 2px solid #0066aa;
+  border-radius: 10px;
+  padding: 12px 20px;
+  font-size: 17px;
+  cursor: pointer;
+  transition: 0.15s;
+}
+button:hover {
+  background: #004080;
+}
+button:disabled {
+  opacity: 1;
+  cursor: not-allowed;
+  color: #000 !important;
+  background: #000 !important;
+  border-color: #000 !important;
+  text-shadow: none;
+}
+button.action-locked:disabled {
+  opacity: 1;
+  color: #000 !important;
+  background: #000 !important;
+  border-color: #000 !important;
+}
+
+.menu-button {
+  width: 80%;
+  margin: 8px auto;
+  display: block;
+}
+.attack-button {
+  border-color: #ff3333;
+}
+.attack-button:hover {
+  background: #801515;
+}
+.heal-button {
+  border-color: #00dd66;
+}
+.heal-button:hover {
+  background: #075c31;
+}
+.box {
+  background: #181818;
+  border: 2px solid #003d70;
+  border-radius: 14px;
+  padding: 15px;
+  margin: 12px 0;
+}
+.battle-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-top: 15px;
+}
+.battle-buttons button {
+  min-width: 135px;
+}
+.item-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.item-card {
+  background: #202020;
+  border: 1px solid #444;
+  border-radius: 10px;
+  padding: 12px;
+  margin-bottom: 10px;
+}
+.item-name {
+  font-weight: bold;
+  font-size: 17px;
+}
+.item-count {
+  color: #55ccff;
+  margin: 5px 0;
+}
+.item-desc {
+  color: #999;
+  font-size: 13px;
+  min-height: 40px;
+}
+.log {
+  min-height: 90px;
+  background: #111;
+  border: 1px solid #333;
+  border-radius: 10px;
+  padding: 12px;
+  color: #ddd;
+  line-height: 1.6;
+}
+.equip-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #202020;
+  padding: 10px;
+  border-radius: 9px;
+  margin: 6px 0;
+}
+.equip-name {
+  width: 150px;
+}
+.equip-number {
+  width: 70px;
+  text-align: center;
+}
+.small-button {
+  padding: 6px 12px;
+  font-size: 14px;
+}
+.status {
+  text-align: center;
+  color: #aaa;
+  margin: 10px;
+}
+.locked {
+  color: #ff5555;
+}
+.unlocked {
+  color: #55ff77;
+}
+
+.battle-scene {
+  position: relative;
+  height: 350px;
+  margin: 12px 0;
+  border: 2px solid #003d70;
+  border-radius: 16px;
+  overflow: hidden;
+  background:
+  radial-gradient(
+    circle at 50% 20%,
+    #18314a,
+    #0b1118 70%
+  );
+}
+.battle-hud {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  top: 7px;
+  z-index: 50;
+  background: rgba(8,12,18,.95);
+  border: 1px solid #31516d;
+  border-radius: 10px;
+  padding: 7px;
+}
+.hud-title {
+  text-align: center;
+  font-size: 12px;
+  font-weight: bold;
+  color: #ddd;
+  margin-bottom: 5px;
+}
+.hud-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+}
+.hud-player,
+.hud-enemy {
+  background: #151a20;
+  border-radius: 7px;
+  padding: 5px;
+}
+.hud-player {
+  border-left: 3px solid #4f8cff;
+}
+.hud-enemy {
+  border-left: 3px solid #25e85b;
+}
+
+.hud-name {
+  font-weight: bold;
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+.hud-hp-text {
+  font-size: 12px;
+  font-weight: bold;
+}
+.hud-stat {
+  color: #aaa;
+  line-height: 1.35;
+  font-size: 10px;
+}
+.battle-ground {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 55px;
+  background:
+  linear-gradient(
+    to top,
+    #102b18,
+    #102018
+  );
+  border-top: 1px solid #28552e;
+}
+.character {
+  position: absolute;
+  bottom: 38px;
+  width: 100px;
+  height: 145px;
+  z-index: 10;
+}
+.player-character {
+  left: 13%;
+}
+.slime-character {
+  right: 13%;
+}
+.character-hp {
+  position: absolute;
+  top: -18px;
+  left: 0;
+  width: 100px;
+  height: 11px;
+  background: #222;
+  border: 1px solid #777;
+  border-radius: 6px;
+  overflow: hidden;
+  z-index: 25;
+}
+
+.character-hp-fill {
+  height: 100%;
+  width: 100%;
+  transition: width .25s ease;
+}
+.player-hp-small {
+  background: linear-gradient(to right, #ff2222, #ff7777);
+}
+.slime-hp-small {
+  background: linear-gradient(to right, #00cc22, #66ff77);
+}
+.character-hp-number {
+  position: absolute;
+  top: -18px;
+  width: 100%;
+  text-align: center;
+  font-size: 9px;
+  font-weight: bold;
+  text-shadow: 0 1px 3px #000;
+  z-index: 30;
+}
+.player-body {
+  position: absolute;
+  left: 27px;
+  top: 35px;
+  width: 46px;
+  height: 62px;
+  background: linear-gradient(135deg, #4f8cff, #183f9a);
+  border: 3px solid #9ec5ff;
+  border-radius: 14px 14px 20px 20px;
+}
+.player-head {
+  position: absolute;
+  left: 30px;
+  top: 8px;
+  width: 40px;
+  height: 40px;
+  background: #ffd2a6;
+  border: 3px solid #fff0d0;
+  border-radius: 50%;
+  z-index: 2;
+}
+.player-sword {
+  position: absolute;
+  left: 68px;
+  top: 30px;
+  width: 9px;
+  height: 75px;
+  background: #e8f4ff;
+  border: 2px solid #7aa4c7;
+  transform: rotate(35deg);
+  transform-origin: top center;
+}
+.slime-body {
+  position: absolute;
+  left: 15px;
+  top: 38px;
+  width: 70px;
+  height: 60px;
+  background: linear-gradient(135deg, #25e85b, #07952e);
+  border: 3px solid #8cffaa;
+  border-radius: 50% 50% 42% 42%;
+  box-shadow: 0 8px 0 rgba(0,0,0,.25);
+}
+
+.slime-eye {
+  position: absolute;
+  top: 58px;
+  width: 10px;
+  height: 14px;
+  background: #102018;
+  border-radius: 50%;
+  z-index: 3;
+}
+.slime-eye.one { right: 48px; }
+.slime-eye.two { right: 30px; }
+.character-name {
+  position: absolute;
+  top: 105px;
+  width: 100%;
+  text-align: center;
+  font-weight: bold;
+  font-size: 15px;
+  text-shadow: 0 2px 4px #000;
+}
+.battle-notification {
+  position: absolute;
+  left: 50%;
+  top: 185px;
+  transform: translateX(-50%);
+  z-index: 100;
+  min-width: 150px;
+  text-align: center;
+  font-size: 27px;
+  font-weight: bold;
+  text-shadow: 0 2px 8px #000;
+  pointer-events: none;
+  white-space: nowrap;
+}
+.battle-notification.damage { color: #ff4444; }
+.battle-notification.heal { color: #55ff77; }
+.battle-notification.crit { color: #ffd700; }
+.battle-notification.item { color: #55ccff; }
+.battle-notification.info { color: white; }
+
+.notification-show {
+  animation: notificationShow .9s ease-out forwards;
+}
+@keyframes notificationShow {
+  0% { opacity: 0; transform: translateX(-50%) translateY(15px) scale(.45); }
+  20% { opacity: 1; transform: translateX(-50%) translateY(0) scale(1.2); }
+  45% { transform: translateX(-50%) translateY(-4px) scale(1); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-60px) scale(1); }
+}
+
+.anim-player-attack .player-character { animation: playerAttack .45s ease; }
+.anim-player-crit .player-character { animation: playerCrit .55s ease; }
+.anim-slime-attack .slime-character { animation: slimeAttack .45s ease; }
+.anim-slime-crit .slime-character { animation: slimeCrit .55s ease; }
+.anim-heal .player-character { animation: healPulse .7s ease; }
+.anim-rare-heal .player-character { animation: rareHeal .9s ease; }
+.anim-item .player-character { animation: itemUse .7s ease; }
+.anim-slime-item .slime-character { animation: itemUse .7s ease; }
+.anim-slime-heal .slime-character { animation: healPulse .7s ease; }
+.anim-slime-rare-heal .slime-character { animation: rareHeal .9s ease; }
+
+@keyframes playerAttack {
+  0%,100% { transform: translateX(0); }
+  45% { transform: translateX(75px) rotate(-5deg); }
+}
+@keyframes playerCrit {
+  0%,100% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(80px) scale(1.08) rotate(-8deg); }
+  55% { transform: translateX(80px) scale(1.15); }
+}
+@keyframes slimeAttack {
+  0%,100% { transform: translateX(0); }
+  45% { transform: translateX(-70px); }
+}
+@keyframes slimeCrit {
+  0%,100% { transform: translateX(0) scale(1); }
+  35% { transform: translateX(-75px) scale(1.1); }
+  55% { transform: translateX(-75px) scale(1.18); }
+}
+@keyframes healPulse {
+  0%,100% { transform: scale(1); }
+  35% { transform: scale(1.12); filter: brightness(1.6); }
+  70% { transform: scale(1.03); }
+}
+@keyframes rareHeal {
+  0%,100% { transform: scale(1); }
+  30% { transform: scale(1.2) rotate(-5deg); filter: brightness(2); }
+  60% { transform: scale(1.08) rotate(5deg); filter: brightness(1.5); }
+}
+@keyframes itemUse {
+  0%,100% { transform: scale(1); }
+  35% { transform: scale(.9) rotate(-5deg); filter: brightness(1.8); }
+  70% { transform: scale(1.12) rotate(5deg); }
+}
+
+.equipment-section-title {
+  margin: 18px 0 8px;
+  padding: 9px 12px;
+  background: #151515;
+  border: 1px solid #31516d;
+  border-radius: 10px;
+  font-size: 18px;
+  font-weight: bold;
+}
+.item-card.passive-card { border-left: 4px solid #55ff77; }
+.item-card.active-card { border-left: 4px solid #55ccff; }
+.item-card.unique-card { border-left: 4px solid #b56cff; }
+.item-limit-status {
+  text-align: center;
+  color: #aaa;
+  font-size: 13px;
+  line-height: 1.7;
+}
+#curse-status,
+#item-lock-status {
+  display: none;
+  text-align: center;
+  background: #111;
+  border: 1px solid #444;
+  border-radius: 9px;
+  padding: 8px;
+  margin-top: 10px;
+  color: #ffd700;
+  font-weight: bold;
+}
+#item-reward-overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,.72);
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+#item-reward-overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.item-reward-card {
+  width: min(88vw, 360px);
+  min-height: 230px;
+  border-radius: 22px;
+  padding: 25px 18px;
+  text-align: center;
+  background: linear-gradient(145deg,#111,#242424);
+  border: 2px solid #777;
+  box-shadow: 0 0 35px rgba(255,255,255,.18);
+  transform: scale(.35) rotate(-5deg);
+  opacity: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.item-reward-card.normal-reward { border-color: #55ccff; box-shadow: 0 0 45px rgba(0,170,255,.35); }
+.item-reward-card.unique-reward { border-color: #b56cff; box-shadow: 0 0 60px rgba(180,80,255,.5); }
+.item-reward-card.reward-pop {
+  animation: rewardPop .75s cubic-bezier(.17,.89,.32,1.3) forwards;
+}
+.reward-icon {
+  font-size: 58px;
+  margin: 2px 0 8px;
+  animation: rewardIcon 1s ease-in-out infinite;
+}
+.reward-sparkle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 24px;
+  opacity: .9;
+}
+.reward-title { color: #ddd; font-size: 15px; font-weight: bold; }
+.reward-name { margin-top: 7px; font-size: 25px; font-weight: bold; }
+.normal-reward .reward-name { color: #55ccff; }
+.unique-reward .reward-name {
+  color: #d38cff;
+  text-shadow: 0 0 14px rgba(190,90,255,.8);
+}
+.reward-type { margin-top: 10px; font-size: 11px; letter-spacing: 2px; color: #999; }
+@keyframes rewardPop {
+  0% { opacity: 0; transform: scale(.35) rotate(-8deg); }
+  45% { opacity: 1; transform: scale(1.12) rotate(2deg); }
+  70% { transform: scale(.96) rotate(-1deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0); }
+}
+@keyframes rewardIcon {
+  0%,100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-6px) scale(1.08); }
+}
+
+.game-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px;
+  background: rgba(0,0,0,.78);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .18s ease;
+}
+#game-message-overlay { z-index: 13000; }
+.game-modal-overlay.show { opacity: 1; pointer-events: auto; }
+.game-modal {
+  width: min(94vw, 430px);
+  max-height: 90vh;
+  overflow: auto;
+  background: linear-gradient(145deg,#0d1218,#1b2632);
+  border: 2px solid #31516d;
+  border-radius: 22px;
+  padding: 22px;
+  text-align: center;
+  box-shadow: 0 0 45px rgba(0,120,255,.28), 0 18px 50px rgba(0,0,0,.55);
+  transform: translateY(18px) scale(.94);
+  transition: transform .2s ease;
+}
+.game-modal-overlay.show .game-modal { transform: translateY(0) scale(1); }
+.game-modal.result-win { border-color: #55ff77; box-shadow: 0 0 55px rgba(40,255,110,.22), 0 18px 50px rgba(0,0,0,.55); }
+.game-modal.result-lose { border-color: #ff5555; box-shadow: 0 0 55px rgba(255,60,60,.22), 0 18px 50px rgba(0,0,0,.55); }
+.modal-icon { font-size: 54px; margin-bottom: 6px; }
+.modal-title { font-size: 28px; font-weight: bold; margin-bottom: 8px; }
+.modal-subtitle { color: #aaa; line-height: 1.6; margin-bottom: 18px; }
+.modal-buttons { display: grid; gap: 9px; }
+.modal-button { width: 100%; min-height: 48px; font-weight: bold; }
+.modal-button.primary { border-color: #00a6ff; }
+.modal-button.success { border-color: #35d96a; }
+.modal-button.danger { border-color: #ff5555; }
+.modal-button.secondary { border-color: #777; }
+
+.equipment-tabs {
+  display: grid;
+  grid-template-columns: repeat(3,1fr);
+  gap: 8px;
+  margin: 16px 0 12px;
+}
+.equipment-tab {
+  min-height: 48px;
+  padding: 8px 5px;
+  font-size: 13px;
+  border-color: #3d4c5a;
+}
+.equipment-tab.active-tab {
+  background: #003d70;
+  border-color: #55ccff;
+  box-shadow: 0 0 12px rgba(0,170,255,.22);
+}
+.inventory-panel-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 10px 12px;
+  background: #151a20;
+  border: 1px solid #31516d;
+  border-radius: 12px;
+}
+.inventory-panel-title small { color: #888; font-size: 11px; }
+
+.inventory-grid {
+  display: grid;
+  grid-template-columns: repeat(2,minmax(0,1fr));
+  gap: 10px;
+}
+.inventory-card {
+  min-height: 160px;
+  padding: 12px;
+  background: linear-gradient(145deg,#181f27,#11161c);
+  border: 1px solid #354657;
+  border-radius: 15px;
+  text-align: center;
+  cursor: pointer;
+  transition: transform .15s ease, border-color .15s ease, background .15s ease;
+}
+.inventory-card:hover {
+  transform: translateY(-2px);
+  background: #1d2a36;
+  border-color: #55ccff;
+}
+.inventory-card.passive-inventory { border-top: 3px solid #55ff77; }
+.inventory-card.active-inventory { border-top: 3px solid #55ccff; }
+.inventory-card.unique-inventory { border-top: 3px solid #b56cff; }
+.inventory-icon {
+  width: 64px;
+  height: 64px;
+  margin: 0 auto 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d1218;
+  border: 1px solid #405364;
+  border-radius: 16px;
+  font-size: 35px;
+}
+.inventory-name { font-weight: bold; font-size: 15px; line-height: 1.3; }
+.inventory-owned { margin-top: 5px; color: #55ccff; font-size: 12px; }
+.inventory-equipped { margin-top: 3px; color: #ffd35a; font-size: 12px; font-weight: bold; }
+.inventory-empty {
+  grid-column: 1 / -1;
+  padding: 28px 15px;
+  text-align: center;
+  color: #888;
+  border: 1px dashed #444;
+  border-radius: 14px;
+}
+.item-detail-modal { width: min(94vw, 390px); }
+.item-detail-icon {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #0d1218;
+  border: 2px solid #405364;
+  border-radius: 20px;
+  font-size: 48px;
+}
+.item-detail-counts {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 14px 0;
+}
+.item-detail-count {
+  background: #11171d;
+  border: 1px solid #354657;
+  border-radius: 11px;
+  padding: 10px;
+}
+.item-detail-count b { display: block; font-size: 20px; margin-top: 3px; }
+.item-detail-desc {
+  color: #aaa;
+  line-height: 1.55;
+  background: #111;
+  border-radius: 11px;
+  padding: 10px;
+  margin-bottom: 13px;
+}
+.quantity-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.quantity-actions button { min-height: 44px; }
+
+@media(max-width:600px) {
+  .inventory-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+  .equipment-tabs { position: sticky; top: 0; z-index: 20; background: #101010; padding: 7px 0; }
+  .equipment-tab { font-size: 11px; }
+  .game-window { margin: 5px; width: calc(100% - 10px); padding: 12px; }
+  .item-grid { grid-template-columns: 1fr; }
+  .battle-buttons button { width: 100%; }
+  .battle-scene { height: 350px; }
+  .player-character { left: 4%; }
+  .slime-character { right: 4%; }
+  .hud-stat { font-size: 9px; }
+  .battle-notification { font-size: 23px; }
+}
+</style>
+</head>
+<body>
+<div class="game-window">
+  <div id="page-main" class="page active">
+    <div class="title">⚔️ SLIME ADVENTURE</div>
+    <div class="subtitle">เกมต่อสู้กับสไลม์</div>
+    <div class="box">
+      <button class="menu-button" onclick="showPage('page-enemy')">🎮 เข้าเกม</button>
+      <button class="menu-button" onclick="showEquipment()">🎒 อุปกรณ์</button>
+      <button class="menu-button" onclick="exitGame()">🚪 ออก</button>
+    </div>
+  </div>
+
+  <div id="page-enemy" class="page">
+    <div class="title">⚔️ เลือกศัตรู</div>
+    <div class="status">อุปกรณ์ที่ใส่อยู่: <b id="equipment-total">0</b> / 16</div>
+    <div class="box">
+      <button class="menu-button" onclick="startGame(1)">🟢 ต่อสู้กับสไลม์ Lv.1</button>
+      <button id="lv5-button" class="menu-button" onclick="startGame(5)">🟡 ต่อสู้กับสไลม์ Lv.5</button>
+      <div id="lv5-status" class="status"></div>
+      <button id="lv10-button" class="menu-button" onclick="startGame(10)">🔴 ต่อสู้กับสไลม์ Lv.10</button>
+      <div id="lv10-status" class="status"></div>
+      <button id="lv20-button" class="menu-button" onclick="startGame(20)">🟣 ต่อสู้กับสไลม์ Lv.20</button>
+      <div id="lv20-status" class="status"></div>
+    </div>
+    <button onclick="showPage('page-main')">↩️ กลับ</button>
+  </div>
+
+  <div id="page-battle" class="page">
+    <div class="title" id="battle-title">⚔️ ต่อสู้</div>
+    <div id="battle-scene" class="battle-scene">
+      <div class="battle-hud">
+        <div class="hud-title">⚔️ BATTLE STATUS</div>
+        <div class="hud-columns">
+          <div class="hud-player">
+            <div class="hud-name">⚔️ ผู้เล่น</div>
+            <div class="hud-hp-text">❤️ HP: <span id="hud-player-hp">100</span> / <span id="hud-player-max-hp">100</span></div>
+            <div class="hud-stat">⚔️ ดาเมจ: <span id="hud-player-damage">15</span></div>
+            <div class="hud-stat">💥 คริ: <span id="hud-player-crit">35</span></div>
+            <div class="hud-stat">💚 ฟื้นฟู: <span id="hud-player-heal">20</span></div>
+            <div class="hud-stat">✨ ฟื้นฟูหายาก: <span id="hud-player-rare-heal">40</span></div>
+          </div>
+          <div class="hud-enemy">
+            <div class="hud-name">🟢 สไลม์ Lv.<span id="hud-level">1</span></div>
+            <div class="hud-hp-text">💚 HP: <span id="hud-enemy-hp">100</span> / <span id="hud-enemy-max-hp">100</span></div>
+            <div class="hud-stat">⚔️ ดาเมจ: <span id="hud-enemy-damage">15</span></div>
+            <div class="hud-stat">💥 คริ: <span id="hud-enemy-crit">35</span></div>
+            <div class="hud-stat">💚 ฟื้นฟู: <span id="hud-enemy-heal">20</span></div>
+            <div class="hud-stat">✨ ฟื้นฟูหายาก: <span id="hud-enemy-rare-heal">40</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="battle-ground"></div>
+      <div class="character player-character">
+        <div class="character-hp">
+          <div id="player-hp-small" class="character-hp-fill player-hp-small"></div>
+        </div>
+        <div id="player-hp-small-number" class="character-hp-number">100</div>
+        <div class="player-head"></div>
+        <div class="player-body"></div>
+        <div class="player-sword"></div>
+        <div class="character-name">⚔️ ผู้เล่น</div>
+      </div>
+      <div class="character slime-character">
+        <div class="character-hp">
+          <div id="enemy-hp-small" class="character-hp-fill slime-hp-small"></div>
+        </div>
+        <div id="enemy-hp-small-number" class="character-hp-number">100</div>
+        <div class="slime-body"></div>
+        <div class="slime-eye one"></div>
+        <div class="slime-eye two"></div>
+        <div class="character-name">🟢 สไลม์</div>
+      </div>
+      <div id="battle-notification" class="battle-notification"></div>
+    </div>
+    
+    <div class="box">
+      <div class="battle-buttons">
+        <button id="attack-button" class="attack-button" onclick="playerAttack()">⚔️ โจมตี</button>
+        <button id="heal-button" class="heal-button" onclick="playerHeal()">💚 ฟื้นฟู</button>
+      </div>
+      <div id="curse-status"></div>
+      <div id="item-lock-status"></div>
+      <div class="battle-buttons">
+        <button id="shield-button" onclick="useShield()">🛡️ โล่ (0)</button>
+        <button id="crit-button" onclick="useCrit()">💥 คริ (0)</button>
+      </div>
+      <div class="battle-buttons">
+        <button id="dice-button" onclick="useDice()">🎲 เดิมพัน (0)</button>
+        <button id="curse-button" onclick="useCurse()">💍 คำสาป (0)</button>
+      </div>
+      <div class="battle-buttons">
+        <button id="hp-orb-button" onclick="useHealthOrb()">🔮 ลูกแก้วพลังชีวิต (0)</button>
+        <button id="attack-orb-button" onclick="useAttackOrb()">🔮 ลูกแก้วพลังโจมตี (0) • 0 DMG</button>
+      </div>
+    </div>
+    <div class="box">
+      <div id="battle-log" class="log">เริ่มการต่อสู้</div>
+    </div>
+    <button onclick="leaveBattle()">↩️ ออกจากการต่อสู้</button>
+  </div>
+
+  <div id="page-equipment" class="page">
+    <div class="title">🎒 อุปกรณ์</div>
+    <div class="status">อุปกรณ์ที่ใส่อยู่ทั้งหมด: <b id="equip-count">0</b> / 16</div>
+    <div class="item-limit-status">
+      🟢 ติดตัว: <b id="passive-equip-count">0</b> / 10 &nbsp; | &nbsp;
+      🔵 กดใช้: <b id="active-equip-count">0</b> / 5 &nbsp; | &nbsp;
+      🟣 หนึ่งเดียว: <b id="unique-equip-count">0</b> / 1
+    </div>
+    <div class="equipment-tabs">
+      <button id="equipment-tab-passive" class="equipment-tab active-tab" onclick="switchEquipmentCategory('passive')">🟢 ติดตัว</button>
+      <button id="equipment-tab-active" class="equipment-tab" onclick="switchEquipmentCategory('active')">🔵 กดใช้</button>
+      <button id="equipment-tab-unique" class="equipment-tab" onclick="switchEquipmentCategory('unique')">🟣 หนึ่งเดียว</button>
+    </div>
+    <div id="equipment-panel-title" class="inventory-panel-title">
+      <b>🟢 ไอเทมติดตัว</b>
+      <small>กดไอเทมเพื่อจัดการจำนวน</small>
+    </div>
+    <div id="equipment-list" class="inventory-grid"></div>
+    <br>
+    <button onclick="showPage('page-main')">↩️ กลับ</button>
+  </div>
+
+  <div id="page-exit" class="page">
+    <div class="title">🚪 ออกจากเกม</div>
+    <div class="box" style="text-align:center">เกมถูกปิดแล้ว</div>
+  </div>
+</div>
+
+<div id="item-reward-overlay">
+  <div id="item-reward-card" class="item-reward-card"></div>
+</div>
+
+<div id="battle-result-overlay" class="game-modal-overlay">
+  <div id="battle-result-modal" class="game-modal">
+    <div id="battle-result-icon" class="modal-icon">🏆</div>
+    <div id="battle-result-title" class="modal-title">คุณชนะ!</div>
+    <div id="battle-result-text" class="modal-subtitle"></div>
+    <div class="modal-buttons">
+      <button class="modal-button success" onclick="retryBattle()">⚔️ ต่อสู้อีกครั้ง</button>
+      <button class="modal-button primary" onclick="resultGoEquipment()">🎒 อุปกรณ์</button>
+      <button class="modal-button secondary" onclick="resultGoEnemySelect()">↩️ ย้อนกลับ</button>
+    </div>
+  </div>
+</div>
+
+<div id="game-message-overlay" class="game-modal-overlay">
+  <div id="game-message-modal" class="game-modal">
+    <div id="game-message-icon" class="modal-icon">⚠️</div>
+    <div id="game-message-title" class="modal-title">แจ้งเตือน</div>
+    <div id="game-message-text" class="modal-subtitle"></div>
+    <button class="modal-button primary" onclick="closeGameMessage()">ตกลง</button>
+  </div>
+</div>
+
+<div id="item-detail-overlay" class="game-modal-overlay">
+  <div class="game-modal item-detail-modal">
+    <div id="item-detail-icon" class="item-detail-icon">🎁</div>
+    <div id="item-detail-name" class="modal-title">ไอเทม</div>
+    <div id="item-detail-type" class="modal-subtitle"></div>
+    <div class="item-detail-counts">
+      <div class="item-detail-count">มีทั้งหมด <b id="item-detail-owned">0</b></div>
+      <div class="item-detail-count">สวมใส่อยู่ <b id="item-detail-equipped">0</b></div>
+    </div>
+    <div id="item-detail-desc" class="item-detail-desc"></div>
+    <div class="quantity-actions">
+      <button class="modal-button success" onclick="addEquipmentFromModal()">＋ ใส่ 1 ชิ้น</button>
+      <button class="modal-button danger" onclick="removeEquipmentFromModal()">－ ถอด 1 ชิ้น</button>
+    </div>
+    <div class="quantity-actions">
+      <button class="modal-button primary" onclick="fillEquipmentFromModal()">＋ ใส่สูงสุด</button>
+      <button class="modal-button secondary" onclick="removeAllEquipmentFromModal()">－ ถอดทั้งหมด</button>
+    </div>
+    <button class="modal-button secondary" onclick="closeItemDetail()">ปิด</button>
+  </div>
+</div>
+
+<script>
+const slimeData = {
+  1: { hp: 100, damage: 15, crit: 35, heal: 20, rareHeal: 40 },
+  5: { hp: 150, damage: 25, crit: 45, heal: 30, rareHeal: 50 },
+  10: { hp: 200, damage: 35, crit: 60, heal: 40, rareHeal: 75 },
+  20: { hp: 200, damage: 35, crit: 60, heal: 40, rareHeal: 75 }
+};
+
+const itemType = {
+  "พลังชีวิต": "passive",
+  "พลังโจมตี": "passive",
+  "พลังฟื้นฟู": "passive",
+  "โล่": "active",
+  "คริ": "active",
+  "ลูกเต๋าเดิมพัน": "active",
+  "แหวนคำสาป": "active",
+  "ลูกแก้วพลังชีวิต": "unique",
+  "ลูกแก้วพลังโจมตี": "unique"
+};
+
+const passiveItems = ["พลังชีวิต", "พลังโจมตี", "พลังฟื้นฟู"];
+const activeItems = ["โล่", "คริ", "ลูกเต๋าเดิมพัน", "แหวนคำสาป"];
+const uniqueItems = ["ลูกแก้วพลังชีวิต", "ลูกแก้วพลังโจมตี"];
+
+const itemIcon = {
+  "พลังชีวิต": "❤️",
+  "พลังโจมตี": "⚔️",
+  "พลังฟื้นฟู": "💚",
+  "โล่": "🛡️",
+  "คริ": "💥",
+  "ลูกเต๋าเดิมพัน": "🎲",
+  "แหวนคำสาป": "💍",
+  "ลูกแก้วพลังชีวิต": "🔮",
+  "ลูกแก้วพลังโจมตี": "🔮"
+};
+
+let inventory = {
+  "พลังชีวิต": 0, "พลังโจมตี": 0, "พลังฟื้นฟู": 0,
+  "โล่": 0, "คริ": 0, "ลูกเต๋าเดิมพัน": 0, "แหวนคำสาป": 0,
+  "ลูกแก้วพลังชีวิต": 0, "ลูกแก้วพลังโจมตี": 0
+};
+let equipped = {
+  "พลังชีวิต": 0, "พลังโจมตี": 0, "พลังฟื้นฟู": 0,
+  "โล่": 0, "คริ": 0, "ลูกเต๋าเดิมพัน": 0, "แหวนคำสาป": 0,
+  "ลูกแก้วพลังชีวิต": 0, "ลูกแก้วพลังโจมตี": 0
+};
+
+let currentLevel = 1;
+let playerHP = 100;
+let playerMaxHP = 100;
+let enemyHP = 100;
+let enemyMaxHP = 100;
+
+let gameRunning = false;
+let turnLocked = false;
+let itemUseLocked = false;
+let cursePending = false;
+let shieldActive = false;
+let critActive = false;
+let diceActive = false;
+let curseActive = false;
+let curseTurns = 0;
+let attackOrbHits = 0;
+let attackOrbDamage = 0;
+let battleItems = {};
+let slimeBattleItems = {};
+
+let slimeShieldActive = false;
+let slimeCritActive = false;
+let slimeDiceActive = false;
+let slimeCurseActive = false;
+let slimeCurseTurns = 0;
+
+let defeatedLevels = { 1: false, 5: false, 10: false, 20: false };
+let selectedEquipmentCategory = "passive";
+let selectedEquipmentItem = null;
+
+function setText(id, value) {
+  const element = document.getElementById(id);
+  if (element) element.innerText = value;
+}
+
+function totalEquipped() {
+  return Object.values(equipped).reduce((a,b) => a + b, 0);
+}
+function totalPassiveEquipped() {
+  return passiveItems.reduce((sum,item) => sum + equipped[item], 0);
+}
+function totalActiveEquipped() {
+  return activeItems.reduce((sum,item) => sum + equipped[item], 0);
+}
+function totalUniqueEquipped() {
+  return uniqueItems.reduce((sum,item) => sum + equipped[item], 0);
+}
+
+function getBonusHP() { return equipped["พลังชีวิต"] * 10; }
+function getBonusDamage() { return equipped["พลังโจมตี"] * 5; }
+function getBonusHeal() { return equipped["พลังฟื้นฟู"] * 5; }
+
+function randomCrit() { return (Math.floor(Math.random() * 10) + 1) > 7; }
+
+function showGameMessage(title, message, icon = "⚠️") {
+  const overlay = document.getElementById("game-message-overlay");
+  const titleElement = document.getElementById("game-message-title");
+  const textElement = document.getElementById("game-message-text");
+  const iconElement = document.getElementById("game-message-icon");
+  if (!overlay) return;
+  if (titleElement) titleElement.innerText = title;
+  if (textElement) textElement.innerText = message;
+  if (iconElement) iconElement.innerText = icon;
+  overlay.classList.add("show");
+}
+
+function closeGameMessage() {
+  const overlay = document.getElementById("game-message-overlay");
+  if (overlay) overlay.classList.remove("show");
+}
+
+let pendingBattleResult = null;
+function showBattleResult(result, text = "") {
+  const overlay = document.getElementById("battle-result-overlay");
+  const modal = document.getElementById("battle-result-modal");
+  const icon = document.getElementById("battle-result-icon");
+  const title = document.getElementById("battle-result-title");
+  const message = document.getElementById("battle-result-text");
+  
+  if (!overlay || !modal) return;
+  modal.classList.remove("result-win", "result-lose");
+  
+  if (result === "win") {
+    modal.classList.add("result-win");
+    if (icon) icon.innerText = "🏆";
+    if (title) title.innerText = "คุณชนะ!";
+  } else {
+    modal.classList.add("result-lose");
+    if (icon) icon.innerText = "💀";
+    if (title) title.innerText = "คุณแพ้!";
+  }
+  
+  if (message) message.innerText = text;
+  overlay.classList.add("show");
+}
+
+function closeBattleResult() {
+  const overlay = document.getElementById("battle-result-overlay");
+  if (overlay) overlay.classList.remove("show");
+}
+function retryBattle() { closeBattleResult(); startGame(currentLevel); }
+function resultGoEquipment() { closeBattleResult(); showEquipment(); }
+function resultGoEnemySelect() { closeBattleResult(); showPage("page-enemy"); }
+
+function tryShowPendingBattleResult() {
+  if (!pendingBattleResult) return;
+  const result = pendingBattleResult.result;
+  const text = pendingBattleResult.text;
+  pendingBattleResult = null;
+  showBattleResult(result, text);
+}
+
+function showPage(id) {
+  document.querySelectorAll(".page").forEach(page => {
+    page.classList.remove("active");
+  });
+  const page = document.getElementById(id);
+  if (page) page.classList.add("active");
+  updateEquipmentCount();
+}
+
+function animateBattle(type, text, notificationClass = "info") {
+  const scene = document.getElementById("battle-scene");
+  const notification = document.getElementById("battle-notification");
+  if (!scene || !notification) return;
+  
+  scene.classList.remove(
+    "anim-player-attack", "anim-player-crit",
+    "anim-slime-attack", "anim-slime-crit",
+    "anim-heal", "anim-rare-heal", "anim-item",
+    "anim-slime-item", "anim-slime-heal", "anim-slime-rare-heal"
+  );
+  void scene.offsetWidth;
+  if (type) scene.classList.add(type);
+  
+  notification.className = "battle-notification";
+  notification.innerHTML = text || "";
+  void notification.offsetWidth;
+  
+  if (text) {
+    notification.classList.add(notificationClass);
+    notification.classList.add("notification-show");
+  }
+  
+  setTimeout(() => {
+    if (notification.innerHTML === text) {
+      notification.innerHTML = "";
+      notification.className = "battle-notification";
+    }
+  }, 900);
+}
+
+let rewardQueue = [];
+let rewardAnimationRunning = false;
+
+function showItemRewardAnimation(items) {
+  if (!items || items.length === 0) return;
+  rewardQueue.push(...items);
+  processRewardQueue();
+}
+
+function processRewardQueue() {
+  if (rewardAnimationRunning) return;
+  if (rewardQueue.length === 0) {
+    tryShowPendingBattleResult();
+    return;
+  }
+  
+  rewardAnimationRunning = true;
+  const item = rewardQueue.shift();
+  const overlay = document.getElementById("item-reward-overlay");
+  const card = document.getElementById("item-reward-card");
+  
+  if (!overlay || !card) {
+    rewardAnimationRunning = false;
+    return;
+  }
+  
+  const type = itemType[item];
+  const isUnique = type === "unique";
+  card.className = "item-reward-card " + (isUnique ? "unique-reward" : "normal-reward");
+  
+  card.innerHTML = `
+    <div class="reward-sparkle">✦</div>
+    <div class="reward-icon">${isUnique ? "🔮" : "🎁"}</div>
+    <div class="reward-title">${isUnique ? "ไอเทมหนึ่งเดียว" : "ได้รับไอเทม"}</div>
+    <div class="reward-name">${item}</div>
+    <div class="reward-type">${isUnique ? "UNIQUE ITEM" : "NORMAL ITEM"}</div>
+  `;
+  
+  overlay.classList.add("show");
+  void card.offsetWidth;
+  card.classList.add("reward-pop");
+  
+  setTimeout(() => {
+    overlay.classList.remove("show");
+    card.classList.remove("reward-pop");
+    setTimeout(() => {
+      rewardAnimationRunning = false;
+      processRewardQueue();
+    }, 180);
+  }, 1150);
+}
+
+function setButtonLocked(id, locked) {
+  const button = document.getElementById(id);
+  if (!button) return;
+  button.disabled = !!locked;
+  button.classList.toggle("action-locked", !!locked);
+}
+
+function updateBattleButtons() {
+  const activeLocked = turnLocked || !gameRunning;
+  setButtonLocked("attack-button", activeLocked);
+  setButtonLocked("heal-button", activeLocked || cursePending);
+  
+  const commonItemLock = activeLocked || itemUseLocked || cursePending;
+  setButtonLocked("shield-button", commonItemLock || battleItems["โล่"] <= 0);
+  setButtonLocked("crit-button", commonItemLock || battleItems["คริ"] <= 0);
+  setButtonLocked("dice-button", commonItemLock || battleItems["ลูกเต๋าเดิมพัน"] <= 0);
+  setButtonLocked("curse-button", commonItemLock || battleItems["แหวนคำสาป"] <= 0);
+  
+  setButtonLocked("hp-orb-button", activeLocked || itemUseLocked || battleItems["ลูกแก้วพลังชีวิต"] <= 0);
+  setButtonLocked("attack-orb-button", activeLocked || itemUseLocked || cursePending || battleItems["ลูกแก้วพลังโจมตี"] <= 0);
+}
+
+function queueSlimeTurn() {
+  if (!gameRunning || turnLocked) return;
+  turnLocked = true;
+  itemUseLocked = false;
+  updateBattleUI();
+  
+  setTimeout(() => {
+    if (gameRunning) slimeTurn();
+    turnLocked = false;
+    itemUseLocked = false;
+    updateBattleUI();
+  }, 900);
+}
+
+function startGame(level) {
+  const total = totalEquipped();
+  if (level === 5 && total < 7) {
+    showGameMessage("แจ้งเตือน", "ต้องมีอุปกรณ์อย่างน้อย 7 ชิ้นก่อน!", "⚠️");
+    return;
+  }
+  if (level === 10 && total < 15) {
+    showGameMessage("แจ้งเตือน", "ต้องใส่อุปกรณ์ให้ครบ 15 ชิ้นก่อน!", "⚠️");
+    return;
+  }
+  if (level === 20 && !defeatedLevels[10]) {
+    showGameMessage("แจ้งเตือน", "ต้องชนะสไลม์ Lv.10 ก่อนจึงจะต่อสู้กับ Lv.20 ได้!", "⚠️");
+    return;
+  }
+  
+  currentLevel = level;
+  const slime = slimeData[level];
+  playerMaxHP = 100 + getBonusHP();
+  playerHP = playerMaxHP;
+  enemyMaxHP = slime.hp;
+  enemyHP = enemyMaxHP;
+  
+  gameRunning = true;
+  turnLocked = false;
+  itemUseLocked = false;
+  
+  battleItems = {};
+  activeItems.forEach(item => { battleItems[item] = equipped[item]; });
+  uniqueItems.forEach(item => { battleItems[item] = equipped[item]; });
+  
+  slimeBattleItems = {};
+  activeItems.forEach(item => { slimeBattleItems[item] = level === 20 ? 5 : 0; });
+  
+  shieldActive = false;
+  critActive = false;
+  diceActive = false;
+  cursePending = false;
+  curseActive = false;
+  curseTurns = 0;
+  attackOrbHits = 0;
+  attackOrbDamage = 0;
+  
+  slimeShieldActive = false;
+  slimeCritActive = false;
+  slimeDiceActive = false;
+  slimeCurseActive = false;
+  slimeCurseTurns = 0;
+  
+  document.getElementById("battle-title").innerText = "⚔️ ต่อสู้กับสไลม์ Lv." + level;
+  showPage("page-battle");
+  log("เริ่มการต่อสู้กับสไลม์ Lv." + level);
+  updateBattleUI();
+}
+
+function updateBattleUI() {
+  const slime = slimeData[currentLevel];
+  
+  setText("hud-player-hp", Math.max(0, playerHP));
+  setText("hud-player-max-hp", playerMaxHP);
+  setText("hud-enemy-hp", Math.max(0, enemyHP));
+  setText("hud-enemy-max-hp", enemyMaxHP);
+  setText("hud-level", currentLevel);
+  
+  const playerPercent = Math.max(0, Math.min(100, playerHP / playerMaxHP * 100));
+  const enemyPercent = Math.max(0, Math.min(100, enemyHP / enemyMaxHP * 100));
+  
+  const playerBar = document.getElementById("player-hp-small");
+  const enemyBar = document.getElementById("enemy-hp-small");
+  if (playerBar) playerBar.style.width = playerPercent + "%";
+  if (enemyBar) enemyBar.style.width = enemyPercent + "%";
+  
+  setText("player-hp-small-number", Math.max(0, playerHP));
+  setText("enemy-hp-small-number", Math.max(0, enemyHP));
+  
+  const playerDamage = 15 + getBonusDamage();
+  const playerCrit = 35 + Math.floor(getBonusDamage() * 6 / 5);
+  const playerHeal = 20 + getBonusHeal();
+  const playerRareHeal = 40 + Math.floor(getBonusHeal() * 6 / 5);
+  
+  setText("hud-player-damage", playerDamage);
+  setText("hud-player-crit", playerCrit);
+  setText("hud-player-heal", playerHeal);
+  setText("hud-player-rare-heal", playerRareHeal);
+  
+  if (slime) {
+    setText("hud-enemy-damage", slime.damage);
+    setText("hud-enemy-crit", slime.crit);
+    setText("hud-enemy-heal", slime.heal);
+    setText("hud-enemy-rare-heal", slime.rareHeal);
+  }
+  
+  setText("shield-button", "🛡️ โล่ (" + (battleItems["โล่"] || 0) + ")");
+  setText("crit-button", "💥 คริ (" + (battleItems["คริ"] || 0) + ")");
+  setText("dice-button", "🎲 เดิมพัน (" + (battleItems["ลูกเต๋าเดิมพัน"] || 0) + ")");
+  setText("curse-button", "💍 คำสาป (" + (battleItems["แหวนคำสาป"] || 0) + ")");
+  setText("hp-orb-button", "🔮 ลูกแก้วพลังชีวิต (" + (battleItems["ลูกแก้วพลังชีวิต"] || 0) + ")");
+  setText("attack-orb-button", "🔮 ลูกแก้วพลังโจมตี (" + (battleItems["ลูกแก้วพลังโจมตี"] || 0) + ") • " + attackOrbDamage + " DMG");
+  
+  const curseStatus = document.getElementById("curse-status");
+  if (curseStatus) {
+    if (cursePending) {
+      curseStatus.innerText = "💍 คำสาป: การกระทำถัดไปต้องโจมตี";
+      curseStatus.style.display = "block";
+    } else if (curseActive) {
+      curseStatus.innerText = "💍 คำสาปทำงาน: " + curseTurns + " เทิร์น";
+      curseStatus.style.display = "block";
+    } else {
+      curseStatus.style.display = "none";
+    }
+  }
+  
+  const itemLockStatus = document.getElementById("item-lock-status");
+  if (itemLockStatus) {
+    if (itemUseLocked) {
+      itemLockStatus.innerText = "🔒 ไอเทมถูกล็อกชั่วคราว — โจมตีหรือฟื้นฟูได้";
+      itemLockStatus.style.display = "block";
+    } else {
+      itemLockStatus.style.display = "none";
+    }
+  }
+  
+  updateBattleButtons();
+}
+
+function log(text) {
+  const element = document.getElementById("battle-log");
+  if (element) element.innerHTML = text;
+}
+
+function playerAttack() {
+  if (!gameRunning || turnLocked || enemyHP <= 0 || playerHP <= 0) return;
+  
+  let damage;
+  let attackWasCrit = false;
+  
+  if (critActive) {
+    damage = 35 + Math.floor(getBonusDamage() * 6 / 5);
+    critActive = false;
+    attackWasCrit = true;
+  } else if (randomCrit()) {
+    damage = 35 + Math.floor(getBonusDamage() * 6 / 5);
+    attackWasCrit = true;
+  } else {
+    damage = 15 + getBonusDamage();
+  }
+  
+  if (slimeShieldActive) {
+    slimeShieldActive = false;
+    animateBattle("anim-player-attack", "🛡️ BLOCK", "info");
+    log("🛡️ โล่ของสไลม์ป้องกันสำเร็จ!");
+    finishPlayerAction();
+    return;
+  }
+  
+  animateBattle(
+    attackWasCrit ? "anim-player-crit" : "anim-player-attack",
+    attackWasCrit ? "💥 -" + damage : "⚔️ -" + damage,
+    attackWasCrit ? "crit" : "damage"
+  );
+  
+  enemyHP -= damage;
+  if (enemyHP < 0) enemyHP = 0;
+  
+  if (cursePending) {
+    cursePending = false;
+    curseActive = true;
+    curseTurns = 3;
+  }
+  
+  updateBattleUI();
+  if (enemyHP <= 0) { winBattle(); return; }
+  queueSlimeTurn();
+}
+
+function finishPlayerAction() {
+  updateBattleUI();
+  if (enemyHP <= 0) { winBattle(); return; }
+  queueSlimeTurn();
+}
+
+function playerHeal() {
+  if (!gameRunning || turnLocked || enemyHP <= 0 || playerHP <= 0) return;
+  if (cursePending) {
+    log("💍 คำสาปทำงานอยู่ — การกระทำครั้งนี้ต้องเป็นการโจมตีเท่านั้น");
+    updateBattleUI();
+    return;
+  }
+  
+  let amount;
+  let healWasRare = false;
+  
+  if (critActive) {
+    amount = 40 + Math.floor(getBonusHeal() * 6 / 5);
+    critActive = false;
+    healWasRare = true;
+  } else if (randomCrit()) {
+    amount = 40 + Math.floor(getBonusHeal() * 6 / 5);
+    healWasRare = true;
+  } else {
+    amount = 20 + getBonusHeal();
+  }
+  
+  const oldHP = playerHP;
+  playerHP += amount;
+  if (playerHP > playerMaxHP) playerHP = playerMaxHP;
+  
+  let actual = playerHP - oldHP;
+  if (slimeCurseActive && actual > 5) {
+    playerHP = oldHP + 5;
+    actual = 5;
+  }
+  
+  animateBattle(
+    healWasRare ? "anim-rare-heal" : "anim-heal",
+    healWasRare ? "✨ +" + actual : "💚 +" + actual,
+    healWasRare ? "crit" : "heal"
+  );
+  
+  updateBattleUI();
+  queueSlimeTurn();
+}
+
+function useShield() {
+  if (!canUseItem("โล่")) return;
+  if (shieldActive) { log("🛡️ โล่กำลังทำงานอยู่แล้ว"); return; }
+  consumeItem("โล่");
+  shieldActive = true;
+  animateBattle("anim-item", "🛡️ ใช้โล่", "item");
+  log("🛡️ คุณใช้โล่ — การโจมตีครั้งถัดไปของสไลม์จะถูกป้องกัน");
+  updateBattleUI();
+  queueSlimeTurn();
+}
+
+function useCrit() {
+  if (!canUseItem("คริ")) return;
+  if (critActive) { log("💥 คริถูกเปิดใช้งานอยู่แล้ว"); return; }
+  consumeItem("คริ");
+  critActive = true;
+  itemUseLocked = true;
+  animateBattle("anim-item", "💥 เปิดใช้คริ", "crit");
+  log("💥 คริพร้อมใช้ — การโจมตีหรือฟื้นฟูครั้งถัดไปเป็นคริแน่นอน");
+  updateBattleUI();
+}
+
+function useDice() {
+  if (!canUseItem("ลูกเต๋าเดิมพัน")) return;
+  consumeItem("ลูกเต๋าเดิมพัน");
+  diceActive = true;
+  animateBattle("anim-item", "🎲 เดิมพัน", "item");
+  log("🎲 คุณใช้ลูกเต๋าเดิมพัน");
+  updateBattleUI();
+  queueSlimeTurn();
+}
+
+function useCurse() {
+  if (!canUseItem("แหวนคำสาป")) return;
+  if (curseActive || cursePending) { log("💍 คำสาปกำลังทำงานอยู่"); return; }
+  consumeItem("แหวนคำสาป");
+  cursePending = true;
+  animateBattle("anim-item", "💍 เตรียมคำสาป", "item");
+  log("💍 ใช้แหวนคำสาป — การกระทำครั้งถัดไปของคุณต้องเป็นการโจมตี");
+  updateBattleUI();
+}
+
+function useHealthOrb() {
+  if (!canUseItem("ลูกแก้วพลังชีวิต")) return;
+  consumeItem("ลูกแก้วพลังชีวิต");
+  const oldHP = playerHP;
+  playerHP = playerMaxHP;
+  const actual = playerHP - oldHP;
+  animateBattle("anim-item", "🔮 +" + actual + " HP", "heal");
+  log("🔮 ลูกแก้วพลังชีวิตฟื้นฟู HP เต็ม " + playerMaxHP + " หน่วย — เทิร์นยังไม่จบ");
+  updateBattleUI();
+}
+
+function useAttackOrb() {
+  if (!canUseItem("ลูกแก้วพลังโจมตี")) return;
+  consumeItem("ลูกแก้วพลังโจมตี");
+  const damage = attackOrbDamage;
+  
+  if (slimeShieldActive) {
+    slimeShieldActive = false;
+    animateBattle("anim-item", "🔮 🛡️ BLOCK", "info");
+    log("🔮 ลูกแก้วพลังโจมตีถูกโล่ของสไลม์ป้องกันไว้!");
+  } else {
+    enemyHP -= damage;
+    if (enemyHP < 0) enemyHP = 0;
+    animateBattle("anim-item", "🔮 -" + damage, "crit");
+    log("🔮 ลูกแก้วพลังโจมตีสร้างความเสียหาย " + damage + " หน่วย");
+  }
+  
+  updateBattleUI();
+  if (enemyHP <= 0) { winBattle(); return; }
+  queueSlimeTurn();
+}
+
+function canUseItem(item) {
+  if (!gameRunning || turnLocked) return false;
+  if (cursePending) {
+    log("💍 คำสาปทำงานอยู่ — ต้องโจมตีก่อน");
+    return false;
+  }
+  if (itemUseLocked) {
+    log("🔒 หลังใช้คริ คุณไม่สามารถใช้ไอเทมอื่นได้จนกว่าจะถึงเทิร์นถัดไป");
+    return false;
+  }
+  if ((battleItems[item] || 0) <= 0) {
+    log("❌ ไม่มี " + item + " เหลือแล้ว");
+    return false;
+  }
+  return true;
+}
+
+function consumeItem(item) {
+  battleItems[item]--;
+}
+
+function slimeUseItem() {
+  if (currentLevel !== 20) return false;
+  
+  const available = activeItems.filter(item => 
+    (slimeBattleItems[item] || 0) > 0 &&
+    !(
+      (item === "โล่" && slimeShieldActive) ||
+      (item === "คริ" && slimeCritActive) ||
+      (item === "ลูกเต๋าเดิมพัน" && slimeDiceActive) ||
+      (item === "แหวนคำสาป" && slimeCurseActive)
+    )
+  );
+  
+  if (available.length === 0) return false;
+  if (Math.random() >= 0.25) return false;
+  
+  const item = available[Math.floor(Math.random() * available.length)];
+  slimeBattleItems[item]--;
+  
+  const emoji = { "โล่": "🛡️", "คริ": "💥", "ลูกเต๋าเดิมพัน": "🎲", "แหวนคำสาป": "💍" }[item];
+  animateBattle("anim-slime-item", emoji + " สไลม์ใช้ " + item, "item");
+  
+  if (item === "โล่") slimeShieldActive = true;
+  if (item === "คริ") slimeCritActive = true;
+  if (item === "ลูกเต๋าเดิมพัน") slimeDiceActive = true;
+  if (item === "แหวนคำสาป") { slimeCurseActive = true; slimeCurseTurns = 3; }
+  
+  updateBattleUI();
+  return true;
+}
+
+function slimeTurn() {
+  if (!gameRunning || enemyHP <= 0 || playerHP <= 0) return;
+  if (slimeUseItem()) return;
+  
+  const slime = slimeData[currentLevel];
+  let action;
+  
+  if (enemyHP < enemyMaxHP * 0.35) {
+    action = Math.random() < 0.65 ? "heal" : "attack";
+  } else {
+    action = Math.random() < 0.7 ? "attack" : "heal";
+  }
+  
+  if (action === "attack") {
+    let isCrit = slimeCritActive || randomCrit();
+    if (slimeCritActive) slimeCritActive = false;
+    const damage = isCrit ? slime.crit : slime.damage;
+    
+    if (shieldActive) {
+      shieldActive = false;
+      animateBattle("anim-slime-attack", "🛡️ BLOCK", "info");
+      log("🛡️ โล่ป้องกันการโจมตีของสไลม์สำเร็จ!");
+    } else if (slimeDiceActive) {
+      slimeDiceActive = false;
+      enemyHP -= damage;
+      if (enemyHP < 0) enemyHP = 0;
+      animateBattle(
+        isCrit ? "anim-slime-crit" : "anim-slime-attack",
+        isCrit ? "💥 -" + damage : "🎲 -" + damage,
+        isCrit ? "crit" : "damage"
+      );
+      log("🎲 เดิมพันของสไลม์ทำให้สไลม์ได้รับความเสียหาย " + damage);
+    } else if (diceActive) {
+      diceActive = false;
+      playerHP -= damage;
+      enemyHP -= damage;
+      if (playerHP < 0) playerHP = 0;
+      if (enemyHP < 0) enemyHP = 0;
+      attackOrbHits++;
+      attackOrbDamage = attackOrbHits * 8;
+      animateBattle(
+        isCrit ? "anim-slime-crit" : "anim-slime-attack",
+        "🎲 -" + damage,
+        isCrit ? "crit" : "damage"
+      );
+      log("🎲 ลูกเต๋าเดิมพันสะท้อนความเสียหาย " + damage + " ใส่สไลม์");
+    } else {
+      playerHP -= damage;
+      if (playerHP < 0) playerHP = 0;
+      attackOrbHits++;
+      attackOrbDamage = attackOrbHits * 8;
+      animateBattle(
+        isCrit ? "anim-slime-crit" : "anim-slime-attack",
+        isCrit ? "💥 -" + damage : "⚔️ -" + damage,
+        isCrit ? "crit" : "damage"
+      );
+      log((isCrit ? "💥 " : "⚔️ ") + "สไลม์โจมตีสร้างความเสียหาย " + damage + "<br>" +
+          "🔮 ลูกแก้วพลังโจมตี: " + attackOrbHits + " ครั้ง → " + attackOrbDamage + " ดาเมจ");
+    }
+  } else {
+    const rare = randomCrit();
+    const amount = rare ? slime.rareHeal : slime.heal;
+    const oldHP = enemyHP;
+    
+    enemyHP += amount;
+    if (enemyHP > enemyMaxHP) enemyHP = enemyMaxHP;
+    
+    let actualHeal = enemyHP - oldHP;
+    if (curseActive) {
+      enemyHP = Math.min(enemyHP, oldHP + 5);
+      actualHeal = enemyHP - oldHP;
+    }
+    
+    if (diceActive) {
+      diceActive = false;
+      playerHP -= actualHeal;
+      if (playerHP < 0) playerHP = 0;
+    }
+    
+    animateBattle(
+      rare ? "anim-slime-rare-heal" : "anim-slime-heal",
+      rare ? "✨ +" + actualHeal : "💚 +" + actualHeal,
+      rare ? "crit" : "heal"
+    );
+    
+    log("สไลม์ฟื้นฟู " + actualHeal + " HP" + (curseActive ? " (คำสาปจำกัดการฟื้นฟู)" : ""));
+  }
+  
+  if (slimeCurseActive) {
+    slimeCurseTurns--;
+    if (slimeCurseTurns <= 0) { slimeCurseActive = false; slimeCurseTurns = 0; }
+  }
+  
+  if (curseActive) {
+    curseTurns--;
+    if (curseTurns <= 0) { curseActive = false; curseTurns = 0; }
+  }
+  
+  updateBattleUI();
+  if (enemyHP <= 0) {
+    winBattle();
+  } else if (playerHP <= 0) {
+    loseBattle();
+  }
+}
+
+function winBattle() {
+  gameRunning = false;
+  turnLocked = false;
+  itemUseLocked = false;
+  defeatedLevels[currentLevel] = true;
+  
+  const dropCount = currentLevel === 20 ? 7 : currentLevel === 10 ? 5 : currentLevel === 5 ? 3 : 1;
+  const normalPool = passiveItems.concat(activeItems);
+  const normalDrops = [];
+  
+  for (let i = 0; i < dropCount; i++) {
+    const drop = normalPool[Math.floor(Math.random() * normalPool.length)];
+    inventory[drop]++;
+    normalDrops.push(drop);
+  }
+  
+  const uniqueDrops = [];
+  if (currentLevel >= 10) {
+    const availableUnique = uniqueItems.filter(item => inventory[item] === 0);
+    if (availableUnique.length > 0) {
+      const unique = availableUnique[Math.floor(Math.random() * availableUnique.length)];
+      inventory[unique] = 1;
+      uniqueDrops.push(unique);
+    }
+  }
+  
+  const drops = normalDrops.concat(uniqueDrops);
+  let dropText = "";
+  
+  if (drops.length === 0) {
+    dropText = "🎒 ไม่มีไอเทมใหม่";
+  } else {
+    dropText = drops.map((item,index) => {
+      const label = itemType[item] === "unique" ? "🔮" : "🎁";
+      return ((index + 1) + ". " + label + " " + item + " × 1");
+    }).join("\n");
+  }
+  
+  animateBattle("anim-item", "🏆 ชนะ!", "crit");
+  
+  const resultText = "🎁 ได้รับไอเทม " + drops.length + " ชิ้น:\n\n" + dropText + "\n\n🎒 ไอเทมถูกเพิ่มเข้า Inventory ถาวร";
+  
+  log(
+    "🏆 <b style='color:#ffd700;font-size:22px'>คุณชนะ!</b><br><br>" +
+    "🎁 ได้รับไอเทม " + drops.length + " ชิ้น:<br>" +
+    dropText.replace(/\n/g,"<br>") + "<br><br>" +
+    "🎒 ไอเทมถูกเพิ่มเข้า Inventory ถาวร"
+  );
+  
+  updateBattleUI();
+  renderEquipment();
+  
+  pendingBattleResult = { result: "win", text: resultText };
+  
+  if (drops.length > 0) {
+    showItemRewardAnimation(drops);
+  } else {
+    tryShowPendingBattleResult();
+  }
+}
+
+function loseBattle() {
+  gameRunning = false;
+  turnLocked = false;
+  itemUseLocked = false;
+  
+  log("💀 <b style='color:#ff4444;font-size:22px'>คุณแพ้!</b><br><br>อุปกรณ์ที่ใช้ไปจะกลับมาเมื่อเริ่มเกมใหม่");
+  animateBattle(null, "💀 แพ้!", "damage");
+  updateBattleUI();
+  
+  pendingBattleResult = {
+    result: "lose",
+    text: "สไลม์ Lv." + currentLevel + " เอาชนะคุณได้\n\nอุปกรณ์ที่ใช้ไปในการต่อสู้ครั้งนี้จะไม่ถูกลบจากอุปกรณ์ถาวร และจะกลับมาให้ใช้ใหม่เมื่อเริ่มการต่อสู้อีกครั้ง"
+  };
+  tryShowPendingBattleResult();
+}
+
+function leaveBattle() {
+  gameRunning = false;
+  turnLocked = false;
+  itemUseLocked = false;
+  showPage("page-enemy");
+  updateEnemyPage();
+}
+
+function showEquipment() {
+  showPage("page-equipment");
+  renderEquipment();
+}
+
+function getItemDescription(item) {
+  const descriptions = {
+    "พลังชีวิต": "ติดตัว: HP สูงสุด +10 ต่อ 1 ชิ้น",
+    "พลังโจมตี": "ติดตัว: ดาเมจ +5 และคริติคอล +6 ต่อ 1 ชิ้น",
+    "พลังฟื้นฟู": "ติดตัว: ฟื้นฟู +5 และฟื้นฟูหายาก +6 ต่อ 1 ชิ้น",
+    "โล่": "กดใช้ / จบเทิร์น: ป้องกันการโจมตีของสไลม์ 1 ครั้ง",
+    "คริ": "กดใช้ / ไม่จบเทิร์น: การโจมตีหรือฟื้นฟูครั้งถัดไปเป็นคริแน่นอน และห้ามใช้ไอเทมอื่นจนถึงเทิร์นถัดไป",
+    "ลูกเต๋าเดิมพัน": "กดใช้ / จบเทิร์น: เดิมพันตามระบบเดิม สะท้อนความเสียหายหรือรับความเสียหายตามการฟื้นฟู",
+    "แหวนคำสาป": "กดใช้ / ไม่จบเทิร์น: การกระทำครั้งถัดไปต้องเป็นการโจมตีเท่านั้น",
+    "ลูกแก้วพลังชีวิต": "ไอเทมหนึ่งเดียว / ไม่จบเทิร์น: ฟื้นฟู HP เป็น 100% ทันที และทำ Action ต่อได้",
+    "ลูกแก้วพลังโจมตี": "ไอเทมหนึ่งเดียว / จบเทิร์น: สร้างดาเมจ 8 ต่อจำนวนครั้งที่คุณถูกโจมตี"
+  };
+  return descriptions[item] || "";
+}
+
+function getEquipmentCategoryData(type) {
+  if (type === "passive") return passiveItems;
+  if (type === "active") return activeItems;
+  return uniqueItems;
+}
+
+function getEquipmentCategoryTitle(type) {
+  if (type === "passive") return "🟢 ไอเทมติดตัว";
+  if (type === "active") return "🔵 ไอเทมกดใช้";
+  return "🟣 ไอเทมหนึ่งเดียว";
+}
+
+function switchEquipmentCategory(type) {
+  selectedEquipmentCategory = type;
+  ["passive","active","unique"].forEach(category => {
+    const tab = document.getElementById("equipment-tab-" + category);
+    if (tab) tab.classList.toggle("active-tab", category === type);
+  });
+  renderEquipment();
+}
+
+function renderEquipment() {
+  const container = document.getElementById("equipment-list");
+  const panelTitle = document.getElementById("equipment-panel-title");
+  if (!container) return;
+  
+  const items = getEquipmentCategoryData(selectedEquipmentCategory);
+  if (panelTitle) {
+    panelTitle.innerHTML = "<b>" + getEquipmentCategoryTitle(selectedEquipmentCategory) + "</b><small>กดไอเทมเพื่อจัดการจำนวน</small>";
+  }
+  
+  container.innerHTML = "";
+  if (items.length === 0) {
+    container.innerHTML = "<div class='inventory-empty'>ไม่มีไอเทมในหมวดนี้</div>";
+    updateEquipmentCount();
+    return;
+  }
+  
+  items.forEach(item => {
+    const type = itemType[item];
+    const card = document.createElement("div");
+    card.className = "inventory-card " + type + "-inventory";
+    const ownMax = type === "unique" ? 1 : "∞";
+    const equipMax = type === "passive" ? 5 : type === "active" ? 5 : 1;
+    
+    card.innerHTML = `
+      <div class="inventory-icon">${itemIcon[item] || "🎁"}</div>
+      <div class="inventory-name">${item}</div>
+      <div class="inventory-owned">มีทั้งหมด: ${inventory[item]} / ${ownMax}</div>
+      <div class="inventory-equipped">สวมใส่: ${equipped[item]} / ${equipMax}</div>
+    `;
+    card.onclick = () => openEquipmentItem(item);
+    container.appendChild(card);
+  });
+  updateEquipmentCount();
+}
+
+function openEquipmentItem(item) {
+  selectedEquipmentItem = item;
+  updateItemDetailModal();
+  const overlay = document.getElementById("item-detail-overlay");
+  if (overlay) overlay.classList.add("show");
+}
+
+function updateItemDetailModal() {
+  const item = selectedEquipmentItem;
+  if (!item) return;
+  
+  const type = itemType[item];
+  const equipMax = type === "passive" ? 5 : type === "active" ? 5 : 1;
+  
+  setText("item-detail-icon", itemIcon[item] || "🎁");
+  setText("item-detail-name", item);
+  setText("item-detail-type", getEquipmentCategoryTitle(type) + " • ใส่ได้สูงสุด " + equipMax + " ชิ้น");
+  setText("item-detail-owned", inventory[item]);
+  setText("item-detail-equipped", equipped[item]);
+  setText("item-detail-desc", getItemDescription(item));
+}
+
+function closeItemDetail() {
+  const overlay = document.getElementById("item-detail-overlay");
+  if (overlay) overlay.classList.remove("show");
+  selectedEquipmentItem = null;
+}
+
+function addEquipmentFromModal() {
+  if (!selectedEquipmentItem) return;
+  addEquipment(selectedEquipmentItem);
+}
+
+function removeEquipmentFromModal() {
+  if (!selectedEquipmentItem) return;
+  removeEquipment(selectedEquipmentItem);
+}
+
+function fillEquipmentFromModal() {
+  if (!selectedEquipmentItem) return;
+  let safety = 0;
+  while (safety < 20 && addEquipment(selectedEquipmentItem, true)) { safety++; }
+  updateItemDetailModal();
+}
+
+function removeAllEquipmentFromModal() {
+  if (!selectedEquipmentItem) return;
+  while (equipped[selectedEquipmentItem] > 0) { equipped[selectedEquipmentItem]--; }
+  renderEquipment();
+  updateItemDetailModal();
+}
+
+function addEquipment(item, silent = false) {
+  const type = itemType[item];
+  // แก้บั๊กตรงนี้: ตรวจสอบไม่ให้จำนวนที่ใส่ เกินจำนวนที่มีใน inventory
+  if (equipped[item] >= inventory[item]) {
+    if (!silent) {
+      showGameMessage("ไอเทมไม่เพียงพอ", "คุณมี " + item + " ไม่พอให้สวมใส่เพิ่ม", "🎒");
+    }
+    return false;
+  }
+  
+  if (type === "passive") {
+    if (equipped[item] >= 5) {
+      if (!silent) showGameMessage("ใส่ไอเทมไม่ได้", "ไอเทมติดตัวชนิดเดียวกันใส่ได้สูงสุด 5 ชิ้น", "🟢");
+      return false;
+    }
+    if (totalPassiveEquipped() >= 10) {
+      if (!silent) showGameMessage("ช่องไอเทมเต็ม", "ไอเทมประเภทติดตัวใส่รวมได้สูงสุด 10 ชิ้น", "🟢");
+      return false;
+    }
+  }
+  
+  if (type === "active") {
+    if (equipped[item] >= 5) {
+      if (!silent) showGameMessage("ใส่ไอเทมไม่ได้", "ไอเทมกดใช้ชนิดเดียวกันใส่ได้สูงสุด 5 ชิ้น", "🔵");
+      return false;
+    }
+    if (totalActiveEquipped() >= 5) {
+      if (!silent) showGameMessage("ช่องไอเทมเต็ม", "ไอเทมประเภทกดใช้ใส่รวมได้สูงสุด 5 ชิ้น", "🔵");
+      return false;
+    }
+  }
+  
+  if (type === "unique") {
+    if (equipped[item] >= 1) {
+      if (!silent) showGameMessage("ใส่ไอเทมไม่ได้", "ไอเทมหนึ่งเดียวชนิดนี้ใส่ได้เพียง 1 ชิ้น", "🟣");
+      return false;
+    }
+    if (totalUniqueEquipped() >= 1) {
+      if (!silent) showGameMessage("ช่องไอเทมหนึ่งเดียวเต็ม", "ไอเทมประเภทหนึ่งเดียวใส่ได้สูงสุด 1 ชิ้น", "🟣");
+      return false;
+    }
+  }
+  
+  equipped[item]++;
+  renderEquipment();
+  if (selectedEquipmentItem === item) updateItemDetailModal();
+  return true;
+}
+
+function removeEquipment(item, silent = false) {
+  if (equipped[item] <= 0) {
+    if (!silent) showGameMessage("ถอดไอเทมไม่ได้", "ตอนนี้คุณไม่ได้สวมใส่ " + item + " อยู่", "🎒");
+    return false;
+  }
+  
+  equipped[item]--;
+  renderEquipment();
+  if (selectedEquipmentItem === item) updateItemDetailModal();
+  return true;
+}
+
+function updateEquipmentCount() {
+  const total = totalEquipped();
+  setText("equipment-total", total);
+  setText("equip-count", total);
+  setText("passive-equip-count", totalPassiveEquipped());
+  setText("active-equip-count", totalActiveEquipped());
+  setText("unique-equip-count", totalUniqueEquipped());
+  updateEnemyPage();
+}
+
+function updateEnemyPage() {
+  const total = totalEquipped();
+  const lv5 = document.getElementById("lv5-button");
+  const lv10 = document.getElementById("lv10-button");
+  const lv20 = document.getElementById("lv20-button");
+  const lv5status = document.getElementById("lv5-status");
+  const lv10status = document.getElementById("lv10-status");
+  const lv20status = document.getElementById("lv20-status");
+  
+  if (!lv5) return;
+  
+  if (total >= 7) {
+    lv5.disabled = false;
+    lv5status.innerHTML = "<span class='unlocked'>✓ ปลดล็อกแล้ว</span>";
+  } else {
+    lv5.disabled = true;
+    lv5status.innerHTML = "<span class='locked'>🔒 ต้องมีอุปกรณ์ 7 ชิ้น (มี " + total + ")</span>";
+  }
+  
+  if (total >= 15) {
+    lv10.disabled = false;
+    lv10status.innerHTML = "<span class='unlocked'>✓ ปลดล็อกแล้ว</span>";
+  } else {
+    lv10.disabled = true;
+    lv10status.innerHTML = "<span class='locked'>🔒 ต้องใส่อุปกรณ์ครบ 15 ชิ้น (มี " + total + ")</span>";
+  }
+  
+  if (defeatedLevels[10]) {
+    lv20.disabled = false;
+    lv20status.innerHTML = "<span class='unlocked'>✓ ปลดล็อกแล้ว — เคยชนะ Lv.10</span>";
+  } else {
+    lv20.disabled = true;
+    lv20status.innerHTML = "<span class='locked'>🔒 ต้องชนะสไลม์ Lv.10 ก่อน</span>";
+  }
+}
+
+function exitGame() {
+  gameRunning = false;
+  showPage("page-exit");
+}
+
+updateEnemyPage();
+</script>
+</body>
+</html>
